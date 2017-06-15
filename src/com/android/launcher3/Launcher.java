@@ -2537,19 +2537,23 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
             }
         }
         if (Homescreen.KEY_FEED_INTEGRATION.equals(key)) {
-            if (mLauncherTab == null) {
-                    return;
-            }
-
-            mFeedIntegrationEnabled = isFeedIntegrationEnabled();
-            mLauncherTab.updateLauncherTab(mFeedIntegrationEnabled);
-            if (mFeedIntegrationEnabled) {
-                mLauncherTab.getClient().onAttachedToWindow();
-            } else {
-                mLauncherTab.getClient().onDestroy();
+            if (mLauncherTab != null) {
+                mFeedIntegrationEnabled = isFeedIntegrationEnabled();
+                mLauncherTab.updateLauncherTab(mFeedIntegrationEnabled);
+                if (mFeedIntegrationEnabled && mLauncherTab != null) {
+                    mLauncherTab.getClient().onAttachedToWindow();
+                } else {
+                    mLauncherTab.getClient().onDestroy();
+                }
             }
             LauncherAppState.getInstanceNoCreate().setNeedsRestart();
         }
+
+	if ("pref_iconPackPackage".equals(key)) {
+            mModel.clearIconCache();
+            mModel.forceReload();
+        }
+
         if (KEY_HOMESCREEN_DT_GESTURES.equals(key)) {
             mWorkspace.setDoubleTapGestures(Integer.valueOf(sharedPreferences.getString(
                 "KEY_HOMESCREEN_DT_GESTURES", "0")));
@@ -2644,5 +2648,6 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
         });
 
         mIconPackDialog.show();
+        }
     }
 }

@@ -33,6 +33,11 @@
     <string name="date_format_normal" translatable="false">EEEE, MMM d</string>
     <string name="date_format_short" translatable="false">EEE, MMM d</string>
 
+    <!-- Icon packs -->
+    <string name="iconPackPackageDefault" translatable="false">""</string>
+    <string name="icon_pack">Icon pack</string>
+    <string name="icon_pack_summary">Select a custom icon pack</string>
+
     <string name="icon_pack_none">Default</string>
     <string name="edit_drop_target_label">Edit</string>
     <string name="edit_hint">Icon name</string>
