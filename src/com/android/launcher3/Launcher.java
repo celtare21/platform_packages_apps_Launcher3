@@ -2648,6 +2648,5 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
         });
 
         mIconPackDialog.show();
-        }
     }
 }
