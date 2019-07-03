@@ -154,10 +154,6 @@ import com.android.launcher3.widget.WidgetListRowEntry;
 import com.android.launcher3.widget.WidgetsFullSheet;
 import com.android.launcher3.widget.custom.CustomWidgetParser;
 
-import com.google.android.libraries.gsa.launcherclient.ClientOptions;
-import com.google.android.libraries.gsa.launcherclient.ClientService;
-import com.google.android.libraries.gsa.launcherclient.LauncherClient;
-
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -1218,11 +1214,7 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
         super.onDetachedFromWindow();
 
         if (mFeedIntegrationEnabled) {
-            final LauncherClient client = mLauncherTab.getClient();
-            if (!client.isDestroyed()) {
-                client.getEventInfo().parse(0, "detachedFromWindow", 0.0f);
-                client.setParams(null);
-            }
+            mLauncherTab.getClient().onDetachedFromWindow();
         }
 
         if (mLauncherCallbacks != null) {
@@ -1432,29 +1424,7 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
         clearPendingBinds();
 
         if (mFeedIntegrationEnabled) {
-            final LauncherClient launcherClient = mLauncherTab.getClient();
-            if (!launcherClient.isDestroyed()) {
-                launcherClient.getActivity().unregisterReceiver(launcherClient.mInstallListener);
-            }
-            launcherClient.setDestroyed(true);
-            launcherClient.getBaseService().disconnect();
-            if (launcherClient.getOverlayCallback() != null) {
-                launcherClient.getOverlayCallback().mClient = null;
-                launcherClient.getOverlayCallback().mWindowManager = null;
-                launcherClient.getOverlayCallback().mWindow = null;
-                launcherClient.setOverlayCallback(null);
-            }
-            ClientService service = launcherClient.getClientService();
-            LauncherClient client = service.getClient();
-            if (client != null && client.equals(launcherClient)) {
-                service.mWeakReference = null;
-                if (!launcherClient.getActivity().isChangingConfigurations()) {
-                    service.disconnect();
-                    if (ClientService.sInstance == service) {
-                        ClientService.sInstance = null;
-                    }
-                }
-            }
+            mLauncherTab.getClient().onDestroy();
         }
 
         if (mLauncherCallbacks != null) {
@@ -2567,17 +2537,16 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
             }
         }
         if (Homescreen.KEY_FEED_INTEGRATION.equals(key)) {
-            if (mLauncherTab != null) {
-                mFeedIntegrationEnabled = isFeedIntegrationEnabled();
-                ClientOptions clientOptions = new ClientOptions(mFeedIntegrationEnabled ? 1 : 0);
-                final LauncherClient client = mLauncherTab.getClient();
-                if (clientOptions.options != client.mFlags) {
-                    client.mFlags = clientOptions.options;
-                    if (client.getParams() != null) {
-                        client.updateConfiguration();
-                    }
-                    client.getEventInfo().parse("setClientOptions ", client.mFlags);
-                }
+            if (mLauncherTab == null) {
+                    return;
+            }
+
+            mFeedIntegrationEnabled = isFeedIntegrationEnabled();
+            mLauncherTab.updateLauncherTab(mFeedIntegrationEnabled);
+            if (mFeedIntegrationEnabled) {
+                mLauncherTab.getClient().onAttachedToWindow();
+            } else {
+                mLauncherTab.getClient().onDestroy();
             }
             LauncherAppState.getInstanceNoCreate().setNeedsRestart();
         }
